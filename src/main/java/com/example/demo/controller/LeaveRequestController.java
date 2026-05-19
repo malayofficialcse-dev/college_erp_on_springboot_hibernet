@@ -6,9 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/leaves")
@@ -37,6 +40,17 @@ public class LeaveRequestController {
     public ResponseEntity<Page<LeaveRequest>> getByStatus(@PathVariable String status,
                                                            @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(leaveRequestService.getByStatus(status, pageable));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<LeaveRequest>> search(@RequestParam(required = false) Long employeeId,
+                                                     @RequestParam(required = false) String status,
+                                                     @RequestParam(required = false) String leaveType,
+                                                     @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+                                                     @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+                                                     @RequestParam(required = false) String keyword,
+                                                     @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(leaveRequestService.search(employeeId, status, leaveType, dateFrom, dateTo, keyword, pageable));
     }
 
     @PostMapping

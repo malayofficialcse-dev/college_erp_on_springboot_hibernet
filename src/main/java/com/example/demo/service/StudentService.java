@@ -40,6 +40,10 @@ public class StudentService {
         return studentRepository.findByStatus(status, pageable);
     }
 
+    public Page<Student> search(Long departmentId, Integer semester, String status, String keyword, Pageable pageable) {
+        return studentRepository.search(departmentId, semester, emptyToNull(status), emptyToNull(keyword), pageable);
+    }
+
     @Transactional
     public Student createStudent(Student student) {
         if (studentRepository.findByEmail(student.getEmail()).isPresent()) {
@@ -78,5 +82,9 @@ public class StudentService {
 
     public long countByStatus(String status) {
         return studentRepository.countByStatus(status);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

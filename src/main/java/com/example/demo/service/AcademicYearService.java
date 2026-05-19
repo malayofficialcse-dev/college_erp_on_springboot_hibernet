@@ -31,10 +31,10 @@ public class AcademicYearService {
     @Transactional
     public AcademicYear update(Long id, AcademicYear details) {
         AcademicYear academicYear = getById(id);
-        academicYear.setName(details.getName());
-        academicYear.setStartDate(details.getStartDate());
-        academicYear.setEndDate(details.getEndDate());
-        academicYear.setStatus(details.getStatus());
+        academicYear.setYearLabel(details.getYearLabel());
+        academicYear.setStartYear(details.getStartYear());
+        academicYear.setEndYear(details.getEndYear());
+        academicYear.setCurrent(details.isCurrent());
         return academicYearRepository.save(academicYear);
     }
 

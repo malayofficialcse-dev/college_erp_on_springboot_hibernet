@@ -12,16 +12,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.math.BigDecimal;
 
 @Service
 public class BookService {
 
     @Autowired private BookRepository bookRepository;
     @Autowired private BookIssueRepository bookIssueRepository;
+    @Autowired private LibraryFeatureService libraryFeatureService;
 
-    // ---- Book CRUD ----
     public Page<Book> getAllBooks(Pageable pageable) {
         return bookRepository.findAll(pageable);
     }
@@ -61,7 +59,6 @@ public class BookService {
         return bookRepository.save(book);
     }
 
-    // ---- Book Issue / Return ----
     @Transactional
     public BookIssue issueBook(BookIssue issue) {
         Book book = getBookById(issue.getBook().getId());
@@ -70,8 +67,9 @@ public class BookService {
         }
         book.setAvailableCopies(book.getAvailableCopies() - 1);
         bookRepository.save(book);
+        issue.setBook(book);
         issue.setIssueDate(LocalDate.now());
-        issue.setDueDate(LocalDate.now().plusDays(14)); // 14-day lending period
+        issue.setDueDate(LocalDate.now().plusDays(14));
         issue.setStatus("ISSUED");
         return bookIssueRepository.save(issue);
     }
@@ -82,17 +80,12 @@ public class BookService {
                 .orElseThrow(() -> new ResourceNotFoundException("BookIssue", "id", issueId));
         issue.setReturnDate(LocalDate.now());
         issue.setStatus("RETURNED");
+        issue.setFineAmount(libraryFeatureService.calculateOverdueFine(issue.getDueDate(), LocalDate.now()));
 
-        // Calculate fine if overdue (₹5 per day)
-        if (LocalDate.now().isAfter(issue.getDueDate())) {
-            long daysLate = ChronoUnit.DAYS.between(issue.getDueDate(), LocalDate.now());
-            issue.setFineAmount(BigDecimal.valueOf(daysLate * 5));
-        }
-
-        // Increment available copies
         Book book = issue.getBook();
         book.setAvailableCopies(book.getAvailableCopies() + 1);
         bookRepository.save(book);
+        libraryFeatureService.fulfillNextReservationIfAny(book);
         return bookIssueRepository.save(issue);
     }
 
@@ -101,6 +94,7 @@ public class BookService {
     }
 
     public Page<BookIssue> getOverdueIssues(Pageable pageable) {
-        return bookIssueRepository.findByStatus("ISSUED", pageable);
+        libraryFeatureService.markOverdueIssues();
+        return bookIssueRepository.findByStatus("OVERDUE", pageable);
     }
 }

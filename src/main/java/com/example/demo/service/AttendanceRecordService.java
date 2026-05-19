@@ -38,6 +38,12 @@ public class AttendanceRecordService {
         return attendanceRepository.findByDate(date, pageable);
     }
 
+    public Page<AttendanceRecord> search(Long studentId, Long subjectId, Long teacherId,
+                                         String status, LocalDate dateFrom, LocalDate dateTo,
+                                         Pageable pageable) {
+        return attendanceRepository.search(studentId, subjectId, teacherId, emptyToNull(status), dateFrom, dateTo, pageable);
+    }
+
     public Map<String, Object> getAttendancePercentage(Long studentId, Long subjectId) {
         long present = attendanceRepository.countPresentByStudentAndSubject(studentId, subjectId);
         long total = attendanceRepository.countTotalByStudentAndSubject(studentId, subjectId);
@@ -68,5 +74,9 @@ public class AttendanceRecordService {
     public void delete(Long id) {
         getById(id);
         attendanceRepository.deleteById(id);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

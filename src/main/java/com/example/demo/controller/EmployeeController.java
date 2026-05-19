@@ -42,6 +42,15 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.getByType(type, pageable));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<Employee>> search(@RequestParam(required = false) Long departmentId,
+                                                 @RequestParam(required = false) String employeeType,
+                                                 @RequestParam(required = false) String status,
+                                                 @RequestParam(required = false) String keyword,
+                                                 @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(employeeService.search(departmentId, employeeType, status, keyword, pageable));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Employee> create(@Valid @RequestBody Employee employee) {

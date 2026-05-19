@@ -35,6 +35,10 @@ public class EmployeeService {
         return employeeRepository.findByStatus(status, pageable);
     }
 
+    public Page<Employee> search(Long departmentId, String employeeType, String status, String keyword, Pageable pageable) {
+        return employeeRepository.search(departmentId, emptyToNull(employeeType), emptyToNull(status), emptyToNull(keyword), pageable);
+    }
+
     @Transactional
     public Employee createEmployee(Employee employee) {
         if (employeeRepository.findByEmail(employee.getEmail()).isPresent()) {
@@ -62,5 +66,9 @@ public class EmployeeService {
     public void deleteEmployee(Long id) {
         getEmployeeById(id);
         employeeRepository.deleteById(id);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

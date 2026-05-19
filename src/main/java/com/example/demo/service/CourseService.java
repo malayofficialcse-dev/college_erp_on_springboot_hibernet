@@ -31,6 +31,10 @@ public class CourseService {
         return courseRepository.findByCourseType(type, pageable);
     }
 
+    public Page<Course> search(Long departmentId, String courseType, String status, String keyword, Pageable pageable) {
+        return courseRepository.search(departmentId, emptyToNull(courseType), emptyToNull(status), emptyToNull(keyword), pageable);
+    }
+
     @Transactional
     public Course createCourse(Course course) {
         if (courseRepository.findByCourseCode(course.getCourseCode()).isPresent()) {
@@ -57,5 +61,9 @@ public class CourseService {
     public void deleteCourse(Long id) {
         getCourseById(id);
         courseRepository.deleteById(id);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

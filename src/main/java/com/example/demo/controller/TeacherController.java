@@ -35,6 +35,14 @@ public class TeacherController {
         return ResponseEntity.ok(teacherService.getByDepartment(deptId, pageable));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<Teacher>> search(@RequestParam(required = false) Long departmentId,
+                                                @RequestParam(required = false) String status,
+                                                @RequestParam(required = false) String keyword,
+                                                @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(teacherService.search(departmentId, status, keyword, pageable));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Teacher> create(@Valid @RequestBody Teacher teacher) {

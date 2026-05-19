@@ -6,10 +6,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ExamRepository extends JpaRepository<Exam, Long> {
     Page<Exam> findByCourseId(Long courseId, Pageable pageable);
     Page<Exam> findBySemesterId(Long semesterId, Pageable pageable);
     Page<Exam> findByStatus(String status, Pageable pageable);
     Page<Exam> findByExamType(String examType, Pageable pageable);
+    List<Exam> findByCourseIdAndSemesterIdOrderByStartDateAsc(Long courseId, Long semesterId);
 }

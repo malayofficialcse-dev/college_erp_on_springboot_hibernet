@@ -5,13 +5,17 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "exam_results")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExamResult {
+@SQLDelete(sql = "UPDATE exam_results SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
+public class ExamResult extends AuditableSoftDeleteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -35,6 +35,10 @@ public class SubjectService {
         return subjectRepository.findByTeacherId(teacherId, pageable);
     }
 
+    public Page<Subject> search(Long courseId, Long teacherId, Integer semesterNumber, String keyword, Pageable pageable) {
+        return subjectRepository.search(courseId, teacherId, semesterNumber, emptyToNull(keyword), pageable);
+    }
+
     @Transactional
     public Subject createSubject(Subject subject) {
         if (subjectRepository.findBySubjectCode(subject.getSubjectCode()).isPresent()) {
@@ -60,5 +64,9 @@ public class SubjectService {
     public void deleteSubject(Long id) {
         getSubjectById(id);
         subjectRepository.deleteById(id);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

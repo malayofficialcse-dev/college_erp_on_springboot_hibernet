@@ -34,6 +34,13 @@ public class LeaveRequestService {
         return leaveRequestRepository.findByStatus(status, pageable);
     }
 
+    public Page<LeaveRequest> search(Long employeeId, String status, String leaveType,
+                                     LocalDate dateFrom, LocalDate dateTo, String keyword,
+                                     Pageable pageable) {
+        return leaveRequestRepository.search(employeeId, emptyToNull(status), emptyToNull(leaveType),
+                dateFrom, dateTo, emptyToNull(keyword), pageable);
+    }
+
     @Transactional
     public LeaveRequest applyLeave(LeaveRequest request) {
         if (request.getEndDate().isBefore(request.getStartDate())) {
@@ -58,5 +65,9 @@ public class LeaveRequestService {
     public void delete(Long id) {
         getById(id);
         leaveRequestRepository.deleteById(id);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

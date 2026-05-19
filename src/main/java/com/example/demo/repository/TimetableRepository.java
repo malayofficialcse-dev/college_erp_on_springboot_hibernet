@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface TimetableRepository extends JpaRepository<Timetable, Long> {
     List<Timetable> findByCourseIdAndDayOfWeek(Long courseId, String dayOfWeek);
+    List<Timetable> findByTeacherIdAndDayOfWeek(Long teacherId, String dayOfWeek);
     Page<Timetable> findByCourseId(Long courseId, Pageable pageable);
     Page<Timetable> findByTeacherId(Long teacherId, Pageable pageable);
     Page<Timetable> findBySemesterId(Long semesterId, Pageable pageable);

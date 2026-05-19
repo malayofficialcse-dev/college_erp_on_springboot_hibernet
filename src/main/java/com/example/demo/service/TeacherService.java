@@ -31,6 +31,10 @@ public class TeacherService {
         return teacherRepository.findByStatus(status, pageable);
     }
 
+    public Page<Teacher> search(Long departmentId, String status, String keyword, Pageable pageable) {
+        return teacherRepository.search(departmentId, emptyToNull(status), emptyToNull(keyword), pageable);
+    }
+
     @Transactional
     public Teacher createTeacher(Teacher teacher) {
         if (teacherRepository.findByEmail(teacher.getEmail()).isPresent()) {
@@ -56,5 +60,9 @@ public class TeacherService {
     public void deleteTeacher(Long id) {
         getTeacherById(id);
         teacherRepository.deleteById(id);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

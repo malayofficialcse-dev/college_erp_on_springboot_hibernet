@@ -23,6 +23,10 @@ public class DepartmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Department", "id", id));
     }
 
+    public Page<Department> search(String status, String keyword, Pageable pageable) {
+        return departmentRepository.search(emptyToNull(status), emptyToNull(keyword), pageable);
+    }
+
     @Transactional
     public Department createDepartment(Department department) {
         if (departmentRepository.findByCode(department.getCode()).isPresent()) {
@@ -47,5 +51,9 @@ public class DepartmentService {
     public void deleteDepartment(Long id) {
         getDepartmentById(id);
         departmentRepository.deleteById(id);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

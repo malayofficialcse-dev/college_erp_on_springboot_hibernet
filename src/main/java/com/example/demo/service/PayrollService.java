@@ -50,11 +50,13 @@ public class PayrollService {
                 .add(safe(payroll.getHra()))
                 .add(safe(payroll.getDa()))
                 .add(safe(payroll.getTa()))
-                .add(safe(payroll.getOtherAllowances()));
+                .add(safe(payroll.getOtherAllowances()))
+                .add(safe(payroll.getBonus()));
         payroll.setGrossSalary(gross);
 
         BigDecimal net = gross
                 .subtract(safe(payroll.getPfDeduction()))
+                .subtract(safe(payroll.getEsiDeduction()))
                 .subtract(safe(payroll.getTaxDeduction()))
                 .subtract(safe(payroll.getOtherDeductions()));
         payroll.setNetSalary(net);
@@ -66,6 +68,36 @@ public class PayrollService {
     public Payroll updateStatus(Long id, String status) {
         Payroll payroll = getById(id);
         payroll.setStatus(status);
+        return payrollRepository.save(payroll);
+    }
+
+    @Transactional
+    public Payroll updatePayroll(Long id, Payroll details) {
+        Payroll payroll = getById(id);
+        payroll.setBasicSalary(details.getBasicSalary());
+        payroll.setHra(details.getHra());
+        payroll.setDa(details.getDa());
+        payroll.setTa(details.getTa());
+        payroll.setOtherAllowances(details.getOtherAllowances());
+        payroll.setBonus(details.getBonus());
+        payroll.setPfDeduction(details.getPfDeduction());
+        payroll.setEsiDeduction(details.getEsiDeduction());
+        payroll.setTaxDeduction(details.getTaxDeduction());
+        payroll.setOtherDeductions(details.getOtherDeductions());
+        payroll.setPaymentDate(details.getPaymentDate());
+        payroll.setStatus(details.getStatus());
+        BigDecimal gross = payroll.getBasicSalary()
+                .add(safe(payroll.getHra()))
+                .add(safe(payroll.getDa()))
+                .add(safe(payroll.getTa()))
+                .add(safe(payroll.getOtherAllowances()))
+                .add(safe(payroll.getBonus()));
+        payroll.setGrossSalary(gross);
+        payroll.setNetSalary(gross
+                .subtract(safe(payroll.getPfDeduction()))
+                .subtract(safe(payroll.getEsiDeduction()))
+                .subtract(safe(payroll.getTaxDeduction()))
+                .subtract(safe(payroll.getOtherDeductions())));
         return payrollRepository.save(payroll);
     }
 

@@ -40,11 +40,12 @@ public class ScholarshipService {
     public Scholarship updateScholarship(Long id, Scholarship details) {
         Scholarship scholarship = getScholarshipById(id);
         scholarship.setScholarshipName(details.getScholarshipName());
-        scholarship.setProvider(details.getProvider());
+        scholarship.setAcademicYear(details.getAcademicYear());
         scholarship.setAmount(details.getAmount());
-        scholarship.setAppliedDate(details.getAppliedDate());
-        scholarship.setApprovalDate(details.getApprovalDate());
+        scholarship.setType(details.getType());
+        scholarship.setAwardedDate(details.getAwardedDate());
         scholarship.setStatus(details.getStatus());
+        scholarship.setRemarks(details.getRemarks());
         scholarship.setStudent(details.getStudent());
         return scholarshipRepository.save(scholarship);
     }

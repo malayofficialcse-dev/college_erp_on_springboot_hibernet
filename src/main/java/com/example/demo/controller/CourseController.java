@@ -3,10 +3,12 @@ package com.example.demo.controller;
 import com.example.demo.model.Course;
 import com.example.demo.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -16,31 +18,32 @@ public class CourseController {
     private CourseService courseService;
 
     @GetMapping
-    public List<Course> getAllCourses() {
-        return courseService.getAllCourses();
+    public ResponseEntity<Page<Course>> getAllCourses(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(courseService.getAllCourses(pageable));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Course> getCourseById(@PathVariable Long id) {
-        Course course = courseService.getCourseById(id);
-        if (course != null) {
-            return ResponseEntity.ok(course);
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(courseService.getCourseById(id));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<Course>> search(@RequestParam(required = false) Long departmentId,
+                                               @RequestParam(required = false) String courseType,
+                                               @RequestParam(required = false) String status,
+                                               @RequestParam(required = false) String keyword,
+                                               @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(courseService.search(departmentId, courseType, status, keyword, pageable));
     }
 
     @PostMapping
-    public Course createCourse(@RequestBody Course course) {
-        return courseService.saveCourse(course);
+    public ResponseEntity<Course> createCourse(@RequestBody Course course) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(courseService.createCourse(course));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Course> updateCourse(@PathVariable Long id, @RequestBody Course courseDetails) {
-        Course updatedCourse = courseService.updateCourse(id, courseDetails);
-        if (updatedCourse != null) {
-            return ResponseEntity.ok(updatedCourse);
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(courseService.updateCourse(id, courseDetails));
     }
 
     @DeleteMapping("/{id}")

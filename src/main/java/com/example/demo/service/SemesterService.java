@@ -31,12 +31,10 @@ public class SemesterService {
     @Transactional
     public Semester update(Long id, Semester details) {
         Semester semester = getById(id);
-        semester.setName(details.getName());
+        semester.setSemesterName(details.getSemesterName());
         semester.setSemesterNumber(details.getSemesterNumber());
-        semester.setStartDate(details.getStartDate());
-        semester.setEndDate(details.getEndDate());
-        semester.setStatus(details.getStatus());
         semester.setAcademicYear(details.getAcademicYear());
+        semester.setCurrent(details.isCurrent());
         return semesterRepository.save(semester);
     }
 

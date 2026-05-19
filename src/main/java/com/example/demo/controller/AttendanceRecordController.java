@@ -44,6 +44,17 @@ public class AttendanceRecordController {
         return ResponseEntity.ok(attendanceService.getByDate(date, pageable));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<AttendanceRecord>> search(@RequestParam(required = false) Long studentId,
+                                                         @RequestParam(required = false) Long subjectId,
+                                                         @RequestParam(required = false) Long teacherId,
+                                                         @RequestParam(required = false) String status,
+                                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+                                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+                                                         @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(attendanceService.search(studentId, subjectId, teacherId, status, dateFrom, dateTo, pageable));
+    }
+
     @GetMapping("/percentage")
     public ResponseEntity<Map<String, Object>> getAttendancePercentage(@RequestParam Long studentId,
                                                                         @RequestParam Long subjectId) {

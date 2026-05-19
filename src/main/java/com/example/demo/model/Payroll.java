@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,7 +17,9 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Payroll {
+@SQLDelete(sql = "UPDATE payrolls SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
+public class Payroll extends AuditableSoftDeleteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,6 +50,9 @@ public class Payroll {
     @Column(name = "other_allowances", precision = 12, scale = 2)
     private BigDecimal otherAllowances = BigDecimal.ZERO;
 
+    @Column(name = "bonus", precision = 12, scale = 2)
+    private BigDecimal bonus = BigDecimal.ZERO;
+
     @Column(name = "gross_salary", precision = 12, scale = 2)
     private BigDecimal grossSalary;
 
@@ -54,6 +61,9 @@ public class Payroll {
 
     @Column(name = "tax_deduction", precision = 12, scale = 2)
     private BigDecimal taxDeduction = BigDecimal.ZERO;
+
+    @Column(name = "esi_deduction", precision = 12, scale = 2)
+    private BigDecimal esiDeduction = BigDecimal.ZERO;
 
     @Column(name = "other_deductions", precision = 12, scale = 2)
     private BigDecimal otherDeductions = BigDecimal.ZERO;

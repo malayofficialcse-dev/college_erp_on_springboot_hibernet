@@ -54,6 +54,15 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudentsByStatus(status, pageable));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<Student>> search(@RequestParam(required = false) Long departmentId,
+                                                @RequestParam(required = false) Integer semester,
+                                                @RequestParam(required = false) String status,
+                                                @RequestParam(required = false) String keyword,
+                                                @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(studentService.search(departmentId, semester, status, keyword, pageable));
+    }
+
     @GetMapping("/count/department/{deptId}")
     public ResponseEntity<Map<String, Long>> countByDepartment(@PathVariable Long deptId) {
         return ResponseEntity.ok(Map.of("count", studentService.countByDepartment(deptId)));

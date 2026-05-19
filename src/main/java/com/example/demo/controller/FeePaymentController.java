@@ -6,12 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -47,6 +49,17 @@ public class FeePaymentController {
     public ResponseEntity<Page<FeePayment>> getByStatus(@PathVariable String status,
                                                          @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(feePaymentService.getByStatus(status, pageable));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<FeePayment>> search(@RequestParam(required = false) Long studentId,
+                                                   @RequestParam(required = false) String status,
+                                                   @RequestParam(required = false) String semester,
+                                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+                                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+                                                   @RequestParam(required = false) String keyword,
+                                                   @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(feePaymentService.search(studentId, status, semester, dateFrom, dateTo, keyword, pageable));
     }
 
     @GetMapping("/total-collected")

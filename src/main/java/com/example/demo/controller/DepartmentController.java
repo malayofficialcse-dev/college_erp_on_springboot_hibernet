@@ -29,6 +29,13 @@ public class DepartmentController {
         return ResponseEntity.ok(departmentService.getDepartmentById(id));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<Department>> search(@RequestParam(required = false) String status,
+                                                   @RequestParam(required = false) String keyword,
+                                                   @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(departmentService.search(status, keyword, pageable));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Department> create(@Valid @RequestBody Department department) {

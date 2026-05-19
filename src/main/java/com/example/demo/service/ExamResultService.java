@@ -37,20 +37,21 @@ public class ExamResultService {
 
     @Transactional
     public ExamResult create(ExamResult result) {
-        // Auto-calculate grade if not provided
-        if (result.getGrade() == null || result.getGrade().isEmpty()) {
-            result.setGrade(calculateGrade(result.getMarksObtained(), result.getTotalMarks()));
-        }
+        applyComputedFields(result);
         return examResultRepository.save(result);
     }
 
     @Transactional
     public ExamResult update(Long id, ExamResult details) {
         ExamResult result = getById(id);
+        result.setStudent(details.getStudent());
+        result.setExam(details.getExam());
+        result.setSubject(details.getSubject());
         result.setMarksObtained(details.getMarksObtained());
-        result.setGrade(calculateGrade(details.getMarksObtained(), result.getTotalMarks()));
-        result.setResultStatus(details.getResultStatus());
+        result.setTotalMarks(details.getTotalMarks());
+        result.setSemester(details.getSemester());
         result.setRemarks(details.getRemarks());
+        applyComputedFields(result);
         return examResultRepository.save(result);
     }
 
@@ -60,14 +61,40 @@ public class ExamResultService {
         examResultRepository.deleteById(id);
     }
 
-    private String calculateGrade(double obtained, double total) {
+    private void applyComputedFields(ExamResult result) {
+        double gradePoint = calculateGradePoint(result.getMarksObtained(), result.getTotalMarks());
+        result.setGradePoint(gradePoint);
+        result.setGrade(calculateGradeFromPoint(gradePoint));
+        if (result.getResultStatus() == null || result.getResultStatus().isBlank()) {
+            double passingMarks = result.getExam() != null && result.getExam().getPassingMarks() != null
+                    ? result.getExam().getPassingMarks()
+                    : result.getTotalMarks() * 0.4;
+            result.setResultStatus(result.getMarksObtained() >= passingMarks ? "PASS" : "FAIL");
+        }
+        if ("FAIL".equalsIgnoreCase(result.getResultStatus()) || "ABSENT".equalsIgnoreCase(result.getResultStatus())) {
+            result.setGradePoint(0.0);
+            result.setGrade("F");
+        }
+    }
+
+    private double calculateGradePoint(double obtained, double total) {
         double percentage = (obtained / total) * 100;
-        if (percentage >= 90) return "O";
-        if (percentage >= 80) return "A+";
-        if (percentage >= 70) return "A";
-        if (percentage >= 60) return "B+";
-        if (percentage >= 50) return "B";
-        if (percentage >= 40) return "C";
+        if (percentage >= 90) return 10.0;
+        if (percentage >= 80) return 9.0;
+        if (percentage >= 70) return 8.0;
+        if (percentage >= 60) return 7.0;
+        if (percentage >= 50) return 6.0;
+        if (percentage >= 40) return 5.0;
+        return 0.0;
+    }
+
+    private String calculateGradeFromPoint(double gradePoint) {
+        if (gradePoint >= 10.0) return "O";
+        if (gradePoint >= 9.0) return "A+";
+        if (gradePoint >= 8.0) return "A";
+        if (gradePoint >= 7.0) return "B+";
+        if (gradePoint >= 6.0) return "B";
+        if (gradePoint >= 5.0) return "C";
         return "F";
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Service
 public class FeePaymentService {
@@ -35,6 +36,12 @@ public class FeePaymentService {
 
     public Page<FeePayment> getBySemester(String semester, Pageable pageable) {
         return feePaymentRepository.findBySemester(semester, pageable);
+    }
+
+    public Page<FeePayment> search(Long studentId, String status, String semester, LocalDate dateFrom,
+                                   LocalDate dateTo, String keyword, Pageable pageable) {
+        return feePaymentRepository.search(studentId, emptyToNull(status), emptyToNull(semester),
+                dateFrom, dateTo, emptyToNull(keyword), pageable);
     }
 
     public BigDecimal getTotalPaidByStudent(Long studentId) {
@@ -78,5 +85,9 @@ public class FeePaymentService {
     public void deleteFeePayment(Long id) {
         getFeePaymentById(id);
         feePaymentRepository.deleteById(id);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }
