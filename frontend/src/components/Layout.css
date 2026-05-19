@@ -1,0 +1,101 @@
+#wrapper {
+  overflow-x: hidden;
+  height: 100vh;
+}
+
+#sidebar-wrapper {
+  min-height: 100vh;
+  width: 260px;
+  background-color: var(--sidebar-bg) !important;
+  transition: margin 0.25s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+#sidebar-wrapper .sidebar-heading {
+  padding: 1.5rem 1.25rem;
+  font-size: 1.5rem;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+#sidebar-wrapper .list-group {
+  width: 100%;
+  padding: 1rem 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+#sidebar-wrapper .list-group-item {
+  border: none;
+  padding: 0.8rem 1.5rem;
+  color: var(--sidebar-text) !important;
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#sidebar-wrapper .list-group-item:hover {
+  background-color: var(--sidebar-hover) !important;
+  color: #fff !important;
+  padding-left: 1.8rem;
+}
+
+#sidebar-wrapper .list-group-item.active-link {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), transparent) !important;
+  color: #fff !important;
+  border-left: 4px solid var(--primary-color);
+}
+
+#page-content-wrapper {
+  min-width: 100vw;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-color);
+}
+
+.top-navbar {
+  background: var(--surface-color) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 0.75rem 2rem !important;
+  backdrop-filter: blur(10px);
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+@media (min-width: 768px) {
+  #sidebar-wrapper {
+    margin-left: 0;
+  }
+
+  #page-content-wrapper {
+    min-width: 0;
+    width: 100%;
+  }
+
+  #wrapper.toggled #sidebar-wrapper {
+    margin-left: -260px;
+  }
+}
+
+.user-avatar {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
