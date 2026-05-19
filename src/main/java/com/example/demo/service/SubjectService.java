@@ -1,46 +1,64 @@
 package com.example.demo.service;
 
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Subject;
 import com.example.demo.repository.SubjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SubjectService {
 
-    @Autowired
-    private SubjectRepository subjectRepository;
+    @Autowired private SubjectRepository subjectRepository;
 
-    public List<Subject> getAllSubjects() {
-        return subjectRepository.findAll();
+    public Page<Subject> getAllSubjects(Pageable pageable) {
+        return subjectRepository.findAll(pageable);
     }
 
     public Subject getSubjectById(Long id) {
-        return subjectRepository.findById(id).orElse(null);
+        return subjectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject", "id", id));
     }
 
-    public Subject saveSubject(Subject subject) {
+    public Page<Subject> getByCourse(Long courseId, Pageable pageable) {
+        return subjectRepository.findByCourseId(courseId, pageable);
+    }
+
+    public Page<Subject> getByCourseAndSemester(Long courseId, Integer semester, Pageable pageable) {
+        return subjectRepository.findByCourseIdAndSemesterNumber(courseId, semester, pageable);
+    }
+
+    public Page<Subject> getByTeacher(Long teacherId, Pageable pageable) {
+        return subjectRepository.findByTeacherId(teacherId, pageable);
+    }
+
+    @Transactional
+    public Subject createSubject(Subject subject) {
+        if (subjectRepository.findBySubjectCode(subject.getSubjectCode()).isPresent()) {
+            throw new IllegalArgumentException("Subject code already exists: " + subject.getSubjectCode());
+        }
         return subjectRepository.save(subject);
     }
 
-    public Subject updateSubject(Long id, Subject subjectDetails) {
-        Optional<Subject> subject = subjectRepository.findById(id);
-        if (subject.isPresent()) {
-            Subject existing = subject.get();
-            existing.setName(subjectDetails.getName());
-            existing.setCode(subjectDetails.getCode());
-            existing.setCredits(subjectDetails.getCredits());
-            existing.setCourse(subjectDetails.getCourse());
-            existing.setTeacher(subjectDetails.getTeacher());
-            return subjectRepository.save(existing);
-        }
-        return null;
+    @Transactional
+    public Subject updateSubject(Long id, Subject details) {
+        Subject subject = getSubjectById(id);
+        subject.setName(details.getName());
+        subject.setDescription(details.getDescription());
+        subject.setCredits(details.getCredits());
+        subject.setSemesterNumber(details.getSemesterNumber());
+        subject.setSubjectType(details.getSubjectType());
+        subject.setCourse(details.getCourse());
+        subject.setTeacher(details.getTeacher());
+        return subjectRepository.save(subject);
     }
 
+    @Transactional
     public void deleteSubject(Long id) {
+        getSubjectById(id);
         subjectRepository.deleteById(id);
     }
 }

@@ -1,6 +1,7 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,11 +17,15 @@ public class ExamResult {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exam_id", nullable = false)
+    private Exam exam;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id", nullable = false)
     private Subject subject;
 
@@ -33,6 +38,15 @@ public class ExamResult {
     @Column(nullable = false)
     private String grade;
 
-    @Column(nullable = false)
-    private String semester; // e.g., "Fall 2026"
+    @Column(name = "grade_point")
+    private Double gradePoint;
+
+    @Column(name = "result_status")
+    private String resultStatus; // PASS, FAIL, ABSENT, WITHHELD
+
+    @Column(name = "semester")
+    private String semester; // e.g., "Semester I 2025-26"
+
+    @Column(columnDefinition = "TEXT")
+    private String remarks;
 }

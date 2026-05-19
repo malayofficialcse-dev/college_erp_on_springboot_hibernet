@@ -2,50 +2,55 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Teacher;
 import com.example.demo.service.TeacherService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/teachers")
+@CrossOrigin(origins = "*")
 public class TeacherController {
 
-    @Autowired
-    private TeacherService teacherService;
+    @Autowired private TeacherService teacherService;
 
     @GetMapping
-    public List<Teacher> getAllTeachers() {
-        return teacherService.getAllTeachers();
+    public ResponseEntity<Page<Teacher>> getAll(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(teacherService.getAllTeachers(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Teacher> getTeacherById(@PathVariable Long id) {
-        Teacher teacher = teacherService.getTeacherById(id);
-        if (teacher != null) {
-            return ResponseEntity.ok(teacher);
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Teacher> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(teacherService.getTeacherById(id));
+    }
+
+    @GetMapping("/department/{deptId}")
+    public ResponseEntity<Page<Teacher>> getByDepartment(@PathVariable Long deptId,
+                                                          @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(teacherService.getByDepartment(deptId, pageable));
     }
 
     @PostMapping
-    public Teacher createTeacher(@RequestBody Teacher teacher) {
-        return teacherService.saveTeacher(teacher);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Teacher> create(@Valid @RequestBody Teacher teacher) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(teacherService.createTeacher(teacher));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Teacher> updateTeacher(@PathVariable Long id, @RequestBody Teacher teacherDetails) {
-        Teacher updatedTeacher = teacherService.updateTeacher(id, teacherDetails);
-        if (updatedTeacher != null) {
-            return ResponseEntity.ok(updatedTeacher);
-        }
-        return ResponseEntity.notFound().build();
+    @PreAuthorize("hasAnyRole('ADMIN', 'PRINCIPAL')")
+    public ResponseEntity<Teacher> update(@PathVariable Long id, @RequestBody Teacher details) {
+        return ResponseEntity.ok(teacherService.updateTeacher(id, details));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTeacher(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         teacherService.deleteTeacher(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

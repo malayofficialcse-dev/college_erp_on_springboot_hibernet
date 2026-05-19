@@ -1,51 +1,81 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Book;
+import com.example.demo.model.BookIssue;
 import com.example.demo.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/library/books")
+@RequestMapping("/api/library")
+@CrossOrigin(origins = "*")
 public class BookController {
 
-    @Autowired
-    private BookService bookService;
+    @Autowired private BookService bookService;
 
-    @GetMapping
-    public List<Book> getAllBooks() {
-        return bookService.getAllBooks();
+    @GetMapping("/books")
+    public ResponseEntity<Page<Book>> getAllBooks(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(bookService.getAllBooks(pageable));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/books/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable Long id) {
-        Book book = bookService.getBookById(id);
-        if (book != null) {
-            return ResponseEntity.ok(book);
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(bookService.getBookById(id));
     }
 
-    @PostMapping
-    public Book createBook(@RequestBody Book book) {
-        return bookService.saveBook(book);
+    @GetMapping("/books/available")
+    public ResponseEntity<Page<Book>> getAvailableBooks(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(bookService.getAvailableBooks(pageable));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book bookDetails) {
-        Book updatedBook = bookService.updateBook(id, bookDetails);
-        if (updatedBook != null) {
-            return ResponseEntity.ok(updatedBook);
-        }
-        return ResponseEntity.notFound().build();
+    @GetMapping("/books/search")
+    public ResponseEntity<Page<Book>> searchBooks(@RequestParam(required = false) String title,
+                                                   @RequestParam(required = false) String author,
+                                                   @PageableDefault(size = 20) Pageable pageable) {
+        if (title != null) return ResponseEntity.ok(bookService.searchByTitle(title, pageable));
+        if (author != null) return ResponseEntity.ok(bookService.searchByAuthor(author, pageable));
+        return ResponseEntity.ok(bookService.getAllBooks(pageable));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
-        bookService.deleteBook(id);
-        return ResponseEntity.ok().build();
+    @PostMapping("/books")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
+    public ResponseEntity<Book> addBook(@RequestBody Book book) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookService.addBook(book));
+    }
+
+    @PutMapping("/books/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
+    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book details) {
+        return ResponseEntity.ok(bookService.updateBook(id, details));
+    }
+
+    @PostMapping("/issues")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
+    public ResponseEntity<BookIssue> issueBook(@RequestBody BookIssue issue) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookService.issueBook(issue));
+    }
+
+    @PatchMapping("/issues/{issueId}/return")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
+    public ResponseEntity<BookIssue> returnBook(@PathVariable Long issueId) {
+        return ResponseEntity.ok(bookService.returnBook(issueId));
+    }
+
+    @GetMapping("/issues/student/{studentId}")
+    public ResponseEntity<Page<BookIssue>> getIssuesByStudent(@PathVariable Long studentId,
+                                                               @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(bookService.getIssuesByStudent(studentId, pageable));
+    }
+
+    @GetMapping("/issues/overdue")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
+    public ResponseEntity<Page<BookIssue>> getOverdue(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(bookService.getOverdueIssues(pageable));
     }
 }

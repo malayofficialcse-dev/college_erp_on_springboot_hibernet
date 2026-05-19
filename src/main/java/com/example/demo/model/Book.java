@@ -1,13 +1,15 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "library_books")
+@Table(name = "books")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,25 +19,38 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "isbn", unique = true)
+    private String isbn;
+
+    @NotBlank
     @Column(nullable = false)
     private String title;
 
     @Column(nullable = false)
     private String author;
 
-    @Column(nullable = false, unique = true)
-    private String isbn;
+    @Column(name = "publisher")
+    private String publisher;
 
-    @Column(nullable = false)
-    private String status; // e.g., AVAILABLE, ISSUED, LOST
+    @Column(name = "edition")
+    private String edition;
 
-    @ManyToOne
-    @JoinColumn(name = "issued_to_student_id")
-    private Student issuedToStudent; // Null if AVAILABLE
+    @Column(name = "publication_year")
+    private Integer publicationYear;
 
-    @Column(name = "issue_date")
-    private LocalDate issueDate;
+    @Column(name = "total_copies")
+    private Integer totalCopies = 1;
 
-    @Column(name = "due_date")
-    private LocalDate dueDate;
+    @Column(name = "available_copies")
+    private Integer availableCopies = 1;
+
+    @Column(name = "location")
+    private String location; // e.g., "Shelf A-3"
+
+    @Column(name = "category")
+    private String category; // TEXTBOOK, REFERENCE, NOVEL, JOURNAL, MAGAZINE
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
 }

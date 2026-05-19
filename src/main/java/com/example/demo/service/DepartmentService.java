@@ -1,43 +1,51 @@
 package com.example.demo.service;
 
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Department;
 import com.example.demo.repository.DepartmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DepartmentService {
 
-    @Autowired
-    private DepartmentRepository departmentRepository;
+    @Autowired private DepartmentRepository departmentRepository;
 
-    public List<Department> getAllDepartments() {
-        return departmentRepository.findAll();
+    public Page<Department> getAllDepartments(Pageable pageable) {
+        return departmentRepository.findAll(pageable);
     }
 
     public Department getDepartmentById(Long id) {
-        return departmentRepository.findById(id).orElse(null);
+        return departmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Department", "id", id));
     }
 
-    public Department saveDepartment(Department department) {
+    @Transactional
+    public Department createDepartment(Department department) {
+        if (departmentRepository.findByCode(department.getCode()).isPresent()) {
+            throw new IllegalArgumentException("Department code already exists: " + department.getCode());
+        }
         return departmentRepository.save(department);
     }
 
-    public Department updateDepartment(Long id, Department departmentDetails) {
-        Optional<Department> department = departmentRepository.findById(id);
-        if (department.isPresent()) {
-            Department existing = department.get();
-            existing.setName(departmentDetails.getName());
-            existing.setDescription(departmentDetails.getDescription());
-            return departmentRepository.save(existing);
-        }
-        return null;
+    @Transactional
+    public Department updateDepartment(Long id, Department details) {
+        Department dept = getDepartmentById(id);
+        dept.setName(details.getName());
+        dept.setCode(details.getCode());
+        dept.setDescription(details.getDescription());
+        dept.setEstablishedYear(details.getEstablishedYear());
+        dept.setStatus(details.getStatus());
+        dept.setHod(details.getHod());
+        return departmentRepository.save(dept);
     }
 
+    @Transactional
     public void deleteDepartment(Long id) {
+        getDepartmentById(id);
         departmentRepository.deleteById(id);
     }
 }

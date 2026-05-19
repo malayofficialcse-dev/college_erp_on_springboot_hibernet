@@ -1,45 +1,61 @@
 package com.example.demo.service;
 
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Course;
 import com.example.demo.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CourseService {
 
-    @Autowired
-    private CourseRepository courseRepository;
+    @Autowired private CourseRepository courseRepository;
 
-    public List<Course> getAllCourses() {
-        return courseRepository.findAll();
+    public Page<Course> getAllCourses(Pageable pageable) {
+        return courseRepository.findAll(pageable);
     }
 
     public Course getCourseById(Long id) {
-        return courseRepository.findById(id).orElse(null);
+        return courseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Course", "id", id));
     }
 
-    public Course saveCourse(Course course) {
+    public Page<Course> getByDepartment(Long deptId, Pageable pageable) {
+        return courseRepository.findByDepartmentId(deptId, pageable);
+    }
+
+    public Page<Course> getByType(String type, Pageable pageable) {
+        return courseRepository.findByCourseType(type, pageable);
+    }
+
+    @Transactional
+    public Course createCourse(Course course) {
+        if (courseRepository.findByCourseCode(course.getCourseCode()).isPresent()) {
+            throw new IllegalArgumentException("Course code already exists: " + course.getCourseCode());
+        }
         return courseRepository.save(course);
     }
 
-    public Course updateCourse(Long id, Course courseDetails) {
-        Optional<Course> course = courseRepository.findById(id);
-        if (course.isPresent()) {
-            Course existing = course.get();
-            existing.setTitle(courseDetails.getTitle());
-            existing.setCredits(courseDetails.getCredits());
-            existing.setDepartment(courseDetails.getDepartment());
-            existing.setTeacher(courseDetails.getTeacher());
-            return courseRepository.save(existing);
-        }
-        return null;
+    @Transactional
+    public Course updateCourse(Long id, Course details) {
+        Course course = getCourseById(id);
+        course.setTitle(details.getTitle());
+        course.setDescription(details.getDescription());
+        course.setTotalSemesters(details.getTotalSemesters());
+        course.setDurationYears(details.getDurationYears());
+        course.setCredits(details.getCredits());
+        course.setCourseType(details.getCourseType());
+        course.setStatus(details.getStatus());
+        course.setDepartment(details.getDepartment());
+        return courseRepository.save(course);
     }
 
+    @Transactional
     public void deleteCourse(Long id) {
+        getCourseById(id);
         courseRepository.deleteById(id);
     }
 }
