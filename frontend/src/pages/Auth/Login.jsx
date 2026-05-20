@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../../context/AuthContext';
 
 const Login = () => {
   const [username, setUsername] = useState('');

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Row, Col, Pagination, Badge } from 'react-bootstrap';
-import api from '../services/api';
+import { Table, Button, Modal, Form, Row, Col, Pagination, Badge, Dropdown, Card } from 'react-bootstrap';
+import api from '../../services/api';
 
 const Employees = () => {
   const [employees, setEmployees] = useState([]);
@@ -62,6 +62,25 @@ const Employees = () => {
   const handleSearchChange = (e) => {
     const { name, value } = e.target;
     setSearchParams(prev => ({ ...prev, [name]: value }));
+    setCurrentPage(0);
+  };
+
+  const toggleFilterArray = (field, value) => {
+    setSearchParams(prev => {
+      const current = prev[field] ? prev[field].split(',') : [];
+      let next;
+      if (current.includes(value.toString())) {
+        next = current.filter(item => item !== value.toString());
+      } else {
+        next = [...current, value.toString()];
+      }
+      return { ...prev, [field]: next.join(',') };
+    });
+    setCurrentPage(0);
+  };
+
+  const clearFilters = () => {
+    setSearchParams({ departmentId: '', employeeType: '', status: '', keyword: '' });
     setCurrentPage(0);
   };
 
@@ -129,38 +148,82 @@ const Employees = () => {
         </Button>
       </div>
 
-      <div className="card glass-panel mb-4">
-        <div className="card-body">
-          <Row className="g-3">
-            <Col md={3}>
-              <Form.Control type="text" placeholder="Search by name, code..." name="keyword" value={searchParams.keyword} onChange={handleSearchChange} className="rounded-3" />
-            </Col>
-            <Col md={3}>
-              <Form.Select name="departmentId" value={searchParams.departmentId} onChange={handleSearchChange} className="rounded-3">
-                <option value="">All Departments</option>
-                {departments.map(dept => <option key={dept.id} value={dept.id}>{dept.name}</option>)}
-              </Form.Select>
-            </Col>
-            <Col md={3}>
-              <Form.Select name="employeeType" value={searchParams.employeeType} onChange={handleSearchChange} className="rounded-3">
-                <option value="">All Types</option>
-                <option value="TEACHING">Teaching</option>
-                <option value="NON_TEACHING">Non-Teaching</option>
-                <option value="ADMIN">Admin</option>
-              </Form.Select>
-            </Col>
-            <Col md={3}>
-              <Form.Select name="status" value={searchParams.status} onChange={handleSearchChange} className="rounded-3">
-                <option value="">All Statuses</option>
-                <option value="ACTIVE">Active</option>
-                <option value="INACTIVE">Inactive</option>
-                <option value="RESIGNED">Resigned</option>
-                <option value="RETIRED">Retired</option>
-              </Form.Select>
-            </Col>
-          </Row>
-        </div>
-      </div>
+      {/* Advanced Multi-Select Filters */}
+      <Card className="mb-4 shadow-sm border-0">
+        <Card.Body className="d-flex flex-wrap gap-3 align-items-center bg-light rounded">
+          <div className="fw-semibold text-secondary me-2"><i className="bi bi-funnel-fill me-1"></i> Filters:</div>
+          
+          <Dropdown>
+            <Dropdown.Toggle variant="white" className="border shadow-sm">
+              Departments {searchParams.departmentId && <Badge bg="primary" className="ms-1">{searchParams.departmentId.split(',').length}</Badge>}
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="p-2 shadow" style={{ minWidth: '220px', maxHeight: '300px', overflowY: 'auto' }}>
+              {departments.map(dept => (
+                <Form.Check 
+                  key={dept.id}
+                  type="checkbox"
+                  label={dept.name}
+                  checked={(searchParams.departmentId ? searchParams.departmentId.split(',') : []).includes(dept.id.toString())}
+                  onChange={() => toggleFilterArray('departmentId', dept.id)}
+                  className="mb-1"
+                />
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+
+          <Dropdown>
+            <Dropdown.Toggle variant="white" className="border shadow-sm">
+              Type {searchParams.employeeType && <Badge bg="primary" className="ms-1">{searchParams.employeeType.split(',').length}</Badge>}
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="p-2 shadow" style={{ minWidth: '150px' }}>
+              {['TEACHING', 'NON_TEACHING', 'ADMIN'].map(t => (
+                <Form.Check 
+                  key={t}
+                  type="checkbox"
+                  label={t}
+                  checked={(searchParams.employeeType ? searchParams.employeeType.split(',') : []).includes(t)}
+                  onChange={() => toggleFilterArray('employeeType', t)}
+                  className="mb-1"
+                />
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+
+          <Dropdown>
+            <Dropdown.Toggle variant="white" className="border shadow-sm">
+              Status {searchParams.status && <Badge bg="primary" className="ms-1">{searchParams.status.split(',').length}</Badge>}
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="p-2 shadow" style={{ minWidth: '150px' }}>
+              {['ACTIVE', 'INACTIVE', 'RESIGNED', 'RETIRED'].map(st => (
+                <Form.Check 
+                  key={st}
+                  type="checkbox"
+                  label={st}
+                  checked={(searchParams.status ? searchParams.status.split(',') : []).includes(st)}
+                  onChange={() => toggleFilterArray('status', st)}
+                  className="mb-1"
+                />
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+
+          <Form.Control
+            type="text"
+            placeholder="Search by name, code..."
+            name="keyword"
+            value={searchParams.keyword}
+            onChange={handleSearchChange}
+            style={{ maxWidth: '300px' }}
+            className="shadow-sm border-white flex-grow-1"
+          />
+
+          {(searchParams.departmentId || searchParams.employeeType || searchParams.status || searchParams.keyword) && (
+            <Button variant="link" className="text-danger text-decoration-none ms-auto" onClick={clearFilters}>
+              Clear Filters
+            </Button>
+          )}
+        </Card.Body>
+      </Card>
 
       <div className="card glass-panel shadow-sm">
         <div className="card-body p-0">

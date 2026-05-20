@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Row, Col, Card } from 'react-bootstrap';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../../context/AuthContext';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Row, Col, Pagination, Badge } from 'react-bootstrap';
-import api from '../services/api';
+import api from '../../services/api';
 
 const Departments = () => {
   const [departments, setDepartments] = useState([]);
