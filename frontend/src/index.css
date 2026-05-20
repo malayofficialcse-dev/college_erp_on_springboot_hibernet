@@ -1,37 +1,61 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --primary-color: #6366f1; /* Indigo */
+  --primary-color: #6366f1; /* Purple */
   --primary-hover: #4f46e5;
+  --primary-light: #818cf8;
   --secondary-color: #ec4899; /* Pink */
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --info-color: #3b82f6;
+  
   --bg-color: #f8fafc;
+  --bg-secondary: #f1f5f9;
   --surface-color: #ffffff;
+  --surface-secondary: #f3f4f6;
+  
   --text-primary: #1e293b;
   --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+  
   --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+  
   --sidebar-bg: #0f172a;
   --sidebar-text: #cbd5e1;
   --sidebar-hover: #1e293b;
-  --sidebar-active: #2563eb;
+  --sidebar-active: #6366f1;
   
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 }
 
 [data-theme="dark"] {
   --bg-color: #0f172a;
+  --bg-secondary: #1a2238;
   --surface-color: #1e293b;
+  --surface-secondary: #334155;
+  
   --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  
   --border-color: #334155;
+  --border-light: #475569;
+  
   --sidebar-bg: #0b1120;
   --sidebar-text: #cbd5e1;
   --sidebar-hover: #1e293b;
-  --sidebar-active: #3b82f6;
+  --sidebar-active: #6366f1;
 }
 
 body {
@@ -65,7 +89,7 @@ h1, h2, h3, h4, h5, h6 {
 .card {
   background-color: var(--surface-color);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -113,7 +137,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
