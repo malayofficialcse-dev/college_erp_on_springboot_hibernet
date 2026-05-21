@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.FeePayment;
 import com.example.demo.service.FeePaymentService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/fees")
@@ -22,6 +24,7 @@ import java.util.Map;
 public class FeePaymentController {
 
     @Autowired private FeePaymentService feePaymentService;
+    @Autowired private ExportService exportService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT')")
@@ -85,5 +88,74 @@ public class FeePaymentController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         feePaymentService.deleteFeePayment(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/export/all")
+    @Operation(summary = "Export fee payments", description = "Export all fee payment records as PDF, Excel, or CSV with filters")
+    public ResponseEntity<byte[]> exportFeePayments(
+            @RequestParam(defaultValue = "PDF") String format,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) throws Exception {
+        
+        List<FeePayment> payments = feePaymentService.getAllFeePayments().stream().collect(Collectors.toList());
+        
+        if (status != null) {
+            payments = payments.stream()
+                .filter(p -> status.equalsIgnoreCase(p.getStatus()))
+                .collect(Collectors.toList());
+        }
+        
+        if (dateFrom != null && dateTo != null) {
+            payments = payments.stream()
+                .filter(p -> !p.getPaymentDate().isBefore(dateFrom) && !p.getPaymentDate().isAfter(dateTo))
+                .collect(Collectors.toList());
+        }
+
+        List<String> headers = Arrays.asList(
+            "ID", "Student", "Amount", "Amount Paid", "Status", "Payment Date", "Semester"
+        );
+
+        List<Map<String, Object>> data = payments.stream()
+            .map(p -> {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("ID", p.getId());
+                row.put("Student", p.getStudent().getUser().getFullName());
+                row.put("Amount", p.getAmount());
+                row.put("Amount Paid", p.getAmountPaid());
+                row.put("Status", p.getStatus());
+                row.put("Payment Date", p.getPaymentDate());
+                row.put("Semester", p.getSemester());
+                return row;
+            })
+            .collect(Collectors.toList());
+
+        ExportRequest request = ExportRequest.builder()
+            .format(format)
+            .module("FeePayments")
+            .title("Fee Payment Records Export")
+            .includeSummary(true)
+            .build();
+
+        byte[] content = exportService.generateExport(request, headers, data);
+
+        String fileName = "Fee-Payments-Export." + format.toLowerCase();
+        return ResponseEntity.ok()
+            .header("Content-Disposition", "attachment; filename=" + fileName)
+            .header("Content-Type", getContentType(format))
+            .body(content);
+    }
+
+    private String getContentType(String format) {
+        switch (format.toUpperCase()) {
+            case "PDF":
+                return "application/pdf";
+            case "EXCEL":
+                return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            case "CSV":
+                return "text/csv";
+            default:
+                return "application/octet-stream";
+        }
     }
 }
