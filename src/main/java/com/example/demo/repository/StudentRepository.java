@@ -26,7 +26,8 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     @Query("""
             SELECT s FROM Student s
-            WHERE (:departmentId IS NULL OR s.department.id = :departmentId)
+            LEFT JOIN s.department d
+            WHERE (:departmentId IS NULL OR d.id = :departmentId)
               AND (:semester IS NULL OR s.currentSemester = :semester)
               AND (:status IS NULL OR UPPER(s.status) = UPPER(:status))
               AND (:keyword IS NULL OR

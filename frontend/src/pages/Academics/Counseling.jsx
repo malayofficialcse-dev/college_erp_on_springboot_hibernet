@@ -47,8 +47,12 @@ const Counseling = () => {
   const fetchCounselings = async () => {
     try {
       setLoading(true);
+      const activeParams = { page: currentPage, size: 10 };
+      if (searchParams.keyword) activeParams.keyword = searchParams.keyword;
+      if (searchParams.status) activeParams.status = searchParams.status;
+      
       const response = await api.get('/counseling/search', {
-        params: { ...searchParams, page: currentPage, size: 10 }
+        params: activeParams
       });
       setCounselings(response.data.content || response.data || []);
       setTotalPages(response.data.totalPages || 1);

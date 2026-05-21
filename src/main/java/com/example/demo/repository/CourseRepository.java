@@ -19,7 +19,8 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     @Query("""
             SELECT c FROM Course c
-            WHERE (:departmentId IS NULL OR c.department.id = :departmentId)
+            LEFT JOIN c.department d
+            WHERE (:departmentId IS NULL OR d.id = :departmentId)
               AND (:courseType IS NULL OR UPPER(c.courseType) = UPPER(:courseType))
               AND (:status IS NULL OR UPPER(c.status) = UPPER(:status))
               AND (:keyword IS NULL OR

@@ -23,7 +23,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     @Query("""
             SELECT e FROM Employee e
-            WHERE (:departmentId IS NULL OR e.department.id = :departmentId)
+            LEFT JOIN e.department d
+            WHERE (:departmentId IS NULL OR d.id = :departmentId)
               AND (:employeeType IS NULL OR UPPER(e.employeeType) = UPPER(:employeeType))
               AND (:status IS NULL OR UPPER(e.status) = UPPER(:status))
               AND (:keyword IS NULL OR

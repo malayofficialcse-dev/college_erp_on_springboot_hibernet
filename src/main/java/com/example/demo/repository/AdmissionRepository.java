@@ -30,17 +30,20 @@ public interface AdmissionRepository extends JpaRepository<Admission, Long> {
 
     @Query("""
             SELECT a FROM Admission a
-            WHERE (:studentId IS NULL OR a.student.id = :studentId)
-              AND (:courseId IS NULL OR a.course.id = :courseId)
-              AND (:departmentId IS NULL OR a.department.id = :departmentId)
+            LEFT JOIN a.student s
+            LEFT JOIN a.course c
+            LEFT JOIN a.department d
+            WHERE (:studentId IS NULL OR s.id = :studentId)
+              AND (:courseId IS NULL OR c.id = :courseId)
+              AND (:departmentId IS NULL OR d.id = :departmentId)
               AND (:status IS NULL OR UPPER(a.status) = UPPER(:status))
               AND (:academicYear IS NULL OR a.academicYear = :academicYear)
               AND (:paymentPlan IS NULL OR UPPER(a.paymentPlan) = UPPER(:paymentPlan))
               AND (:keyword IS NULL OR
                    LOWER(a.admissionNumber) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
-                   LOWER(COALESCE(a.student.firstName, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
-                   LOWER(COALESCE(a.student.lastName, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
-                   LOWER(COALESCE(a.student.enrollmentNumber, '')) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                   LOWER(COALESCE(s.firstName, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+                   LOWER(COALESCE(s.lastName, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+                   LOWER(COALESCE(s.enrollmentNumber, '')) LIKE LOWER(CONCAT('%', :keyword, '%')))
             """)
     Page<Admission> search(@Param("studentId") Long studentId,
                            @Param("courseId") Long courseId,

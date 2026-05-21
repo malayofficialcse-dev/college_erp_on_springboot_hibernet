@@ -21,12 +21,13 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     @Query("""
             SELECT n FROM Notice n
+            LEFT JOIN n.department d
             WHERE n.isActive = true
               AND (n.expiryDate IS NULL OR n.expiryDate >= :today)
               AND (
                   UPPER(n.targetAudience) = 'ALL'
                   OR UPPER(n.targetAudience) = UPPER(:audience)
-                  OR (UPPER(n.targetAudience) = 'DEPARTMENT' AND :departmentId IS NOT NULL AND n.department.id = :departmentId)
+                  OR (UPPER(n.targetAudience) = 'DEPARTMENT' AND :departmentId IS NOT NULL AND d.id = :departmentId)
               )
             ORDER BY n.publishedAt DESC
             """)
@@ -37,8 +38,9 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     @Query("""
             SELECT n FROM Notice n
+            LEFT JOIN n.department d
             WHERE (:audience IS NULL OR UPPER(n.targetAudience) = UPPER(:audience))
-              AND (:departmentId IS NULL OR n.department.id = :departmentId)
+              AND (:departmentId IS NULL OR d.id = :departmentId)
               AND (:noticeType IS NULL OR UPPER(n.noticeType) = UPPER(:noticeType))
               AND (:active IS NULL OR n.isActive = :active)
               AND (:dateFrom IS NULL OR n.publishedAt >= CAST(:dateFrom as java.time.LocalDateTime))

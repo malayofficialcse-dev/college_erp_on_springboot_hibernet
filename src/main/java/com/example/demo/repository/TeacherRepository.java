@@ -23,7 +23,8 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
 
     @Query("""
             SELECT t FROM Teacher t
-            WHERE (:departmentId IS NULL OR t.department.id = :departmentId)
+            LEFT JOIN t.department d
+            WHERE (:departmentId IS NULL OR d.id = :departmentId)
               AND (:status IS NULL OR UPPER(t.status) = UPPER(:status))
               AND (:keyword IS NULL OR
                    LOWER(t.firstName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
