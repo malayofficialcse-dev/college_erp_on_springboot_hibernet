@@ -34,6 +34,21 @@ import FeeInvoices from './pages/Finance/FeeInvoices';
 import BookReservations from './pages/Facilities/BookReservations';
 import EventRegistrations from './pages/Communication/EventRegistrations';
 import Notifications from './pages/Communication/Notifications';
+import UserManagement from './pages/HR/UserManagement';
+import PaymentAnalysis from './pages/Finance/PaymentAnalysis';
+import Admissions from './pages/Academics/Admissions';
+import AdmissionEmiSchedule from './pages/Academics/AdmissionEmiSchedule';
+
+// Employee Centre
+import MyProfile from './pages/EmployeeCentre/MyProfile';
+import MyLeaves from './pages/EmployeeCentre/MyLeaves';
+import MyAttendance from './pages/EmployeeCentre/MyAttendance';
+import MyPayslips from './pages/EmployeeCentre/MyPayslips';
+import MyResignation from './pages/EmployeeCentre/MyResignation';
+
+// HR Inbox pages
+import HrLeaveInbox from './pages/HR/HrLeaveInbox';
+import HrResignationInbox from './pages/HR/HrResignationInbox';
 
 function App() {
   return (
@@ -46,6 +61,8 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
+              <Route path="admissions" element={<Admissions />} />
+              <Route path="admissions/:id/emi" element={<AdmissionEmiSchedule />} />
               <Route path="students" element={<Students />} />
               <Route path="employees" element={<Employees />} />
               <Route path="courses" element={<Courses />} />
@@ -61,6 +78,7 @@ function App() {
               <Route path="leaves" element={<LeaveRequests />} />
               <Route path="payroll" element={<Payroll />} />
               <Route path="fees" element={<Fees />} />
+              <Route path="payment-analysis" element={<PaymentAnalysis />} />
               <Route path="scholarships" element={<Scholarships />} />
               <Route path="library" element={<Library />} />
               <Route path="hostel" element={<Hostel />} />
@@ -74,6 +92,18 @@ function App() {
               <Route path="book-reservations" element={<BookReservations />} />
               <Route path="event-registrations" element={<EventRegistrations />} />
               <Route path="notifications" element={<Notifications />} />
+              <Route path="user-management" element={<UserManagement />} />
+
+              {/* Employee Centre Routes */}
+              <Route path="my-profile" element={<MyProfile />} />
+              <Route path="my-leaves" element={<MyLeaves />} />
+              <Route path="my-attendance" element={<MyAttendance />} />
+              <Route path="my-payslips" element={<MyPayslips />} />
+              <Route path="my-resignation" element={<MyResignation />} />
+
+              {/* HR Inbox Routes */}
+              <Route path="hr-leave-inbox" element={<HrLeaveInbox />} />
+              <Route path="hr-resignation-inbox" element={<HrResignationInbox />} />
             </Route>
           </Routes>
         </AuthProvider>

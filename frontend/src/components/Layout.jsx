@@ -7,7 +7,7 @@ import './Layout.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const Layout = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, hasPermission } = useContext(AuthContext);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [isSidebarToggled, setSidebarToggled] = useState(false);
@@ -16,17 +16,42 @@ const Layout = () => {
 
   const [openMenus, setOpenMenus] = useState({});
 
-  React.useEffect(() => {
-    const activeCategory = navCategories.find(c => 
-      c.items?.some(item => location.pathname.startsWith(item.path))
-    );
-    if (activeCategory && activeCategory.isGroup && !openMenus[activeCategory.title]) {
-      setOpenMenus(prev => ({ ...prev, [activeCategory.title]: true }));
-    }
-  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const toggleMenu = (title) => {
-    setOpenMenus(prev => ({ ...prev, [title]: !prev[title] }));
+  const getModuleForPath = (path) => {
+    if (path.startsWith('/students')) return 'students';
+    if (path.startsWith('/employees')) return 'employees';
+    if (path.startsWith('/staff-attendance')) return 'employees';
+    if (path.startsWith('/leaves')) return 'employees';
+    if (path.startsWith('/leave-approvals')) return 'employees';
+    if (path.startsWith('/departments')) return 'departments';
+    if (path.startsWith('/payroll')) return 'payroll';
+    
+    if (path.startsWith('/academic-years')) return 'academics';
+    if (path.startsWith('/semesters')) return 'academics';
+    if (path.startsWith('/teachers')) return 'academics';
+    if (path.startsWith('/courses')) return 'academics';
+    if (path.startsWith('/subjects')) return 'academics';
+    if (path.startsWith('/timetable')) return 'academics';
+    if (path.startsWith('/attendance')) return 'academics';
+    if (path.startsWith('/exam-schedules')) return 'academics';
+    if (path.startsWith('/exam-results')) return 'academics';
+    
+    if (path.startsWith('/library')) return 'library';
+    if (path.startsWith('/book-reservations')) return 'library';
+    
+    if (path.startsWith('/hostel')) return 'hostel';
+    if (path.startsWith('/transport')) return 'transport';
+    
+    if (path.startsWith('/fees')) return 'finance';
+    if (path.startsWith('/fee-invoices')) return 'finance';
+    if (path.startsWith('/scholarships')) return 'finance';
+    
+    if (path.startsWith('/notices')) return 'notices';
+    if (path.startsWith('/events')) return 'notices';
+    if (path.startsWith('/event-registrations')) return 'notices';
+    if (path.startsWith('/notifications')) return 'notices';
+    
+    if (path.startsWith('/reports')) return 'finance';
+    return null;
   };
 
   const navCategories = [
@@ -42,6 +67,7 @@ const Layout = () => {
       icon: 'bi-mortarboard-fill',
       isGroup: true,
       items: [
+        { path: '/admissions', name: 'Admissions', icon: 'bi-mortarboard-fill' },
         { path: '/academic-years', name: 'Academic Years', icon: 'bi-calendar-range' },
         { path: '/semesters', name: 'Semesters', icon: 'bi-list-ol' },
         { path: '/students', name: 'Students', icon: 'bi-person-badge-fill' },
@@ -63,15 +89,30 @@ const Layout = () => {
       ]
     },
     {
+      title: 'Employee Centre',
+      icon: 'bi-person-circle',
+      isGroup: true,
+      items: [
+        { path: '/my-profile', name: 'My Profile', icon: 'bi-person-fill' },
+        { path: '/my-leaves', name: 'My Leaves', icon: 'bi-calendar2-heart' },
+        { path: '/my-attendance', name: 'My Attendance', icon: 'bi-calendar-check' },
+        { path: '/my-payslips', name: 'My Payslips', icon: 'bi-file-earmark-text-fill' },
+        { path: '/my-resignation', name: 'My Resignation', icon: 'bi-door-open' },
+      ]
+    },
+    {
       title: 'HR & Admin',
       icon: 'bi-people-fill',
       isGroup: true,
       items: [
-        { path: '/employees', name: 'Staff', icon: 'bi-person-vcard-fill' },
+        { path: '/employees', name: 'Staff Registry', icon: 'bi-person-vcard-fill' },
         { path: '/staff-attendance', name: 'Staff Attendance', icon: 'bi-person-check' },
-        { path: '/leaves', name: 'Leave Requests', icon: 'bi-calendar2-x' },
+        { path: '/hr-leave-inbox', name: 'Leave Inbox', icon: 'bi-inbox-fill' },
+        { path: '/hr-resignation-inbox', name: 'Resignation Inbox', icon: 'bi-door-closed-fill' },
+        { path: '/leaves', name: 'All Leave Requests', icon: 'bi-calendar2-x' },
         { path: '/leave-approvals', name: 'Leave Approvals', icon: 'bi-check-circle' },
         { path: '/payroll', name: 'Payroll', icon: 'bi-wallet2' },
+        { path: '/user-management', name: 'User Management', icon: 'bi-shield-lock-fill' },
       ]
     },
     {
@@ -79,7 +120,8 @@ const Layout = () => {
       icon: 'bi-cash-coin',
       isGroup: true,
       items: [
-        { path: '/fees', name: 'Fee Payments', icon: 'bi-receipt-cutoff' },
+        { path: '/fees', name: 'Transaction List', icon: 'bi-receipt-cutoff' },
+        { path: '/payment-analysis', name: 'Payment Analysis', icon: 'bi-bar-chart-fill' },
         { path: '/fee-invoices', name: 'Fee Invoices', icon: 'bi-receipt' },
         { path: '/scholarships', name: 'Scholarships', icon: 'bi-gift-fill' },
       ]
@@ -115,8 +157,31 @@ const Layout = () => {
     }
   ];
 
+  const filteredNavCategories = navCategories.map(category => {
+    const filteredItems = category.items.filter(item => {
+      const module = getModuleForPath(item.path);
+      if (!module) return true;
+      return hasPermission(module, 'view');
+    });
+    return { ...category, items: filteredItems };
+  }).filter(category => category.items.length > 0);
+
+  React.useEffect(() => {
+    const activeCategory = filteredNavCategories.find(c => 
+      c.items?.some(item => location.pathname.startsWith(item.path))
+    );
+    if (activeCategory && activeCategory.isGroup && !openMenus[activeCategory.title]) {
+      setOpenMenus(prev => ({ ...prev, [activeCategory.title]: true }));
+    }
+  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggleMenu = (title) => {
+    setOpenMenus(prev => ({ ...prev, [title]: !prev[title] }));
+  };
+
   const getPageTitle = () => {
     const path = location.pathname;
+    if (path.includes('user-management')) return 'User Access Control';
     if (path.includes('dashboard')) return 'Dashboard Overview';
     if (path.includes('students')) return 'Student Directory';
     if (path.includes('employees')) return 'Employee Directory';
@@ -158,7 +223,7 @@ const Layout = () => {
           ERP Pro
         </div>
         <div className="list-group list-group-flush mt-2">
-          {navCategories.map((category, index) => {
+          {filteredNavCategories.map((category, index) => {
             if (!category.isGroup) {
               return (
                 <React.Fragment key={index}>

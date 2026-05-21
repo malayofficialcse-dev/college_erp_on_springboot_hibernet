@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Table, Button, Modal, Form, Row, Col, Pagination, Badge, Dropdown, Card } from 'react-bootstrap';
 import api from '../../services/api';
+import { AuthContext } from '../../context/AuthContext';
 
 const Employees = () => {
   const [employees, setEmployees] = useState([]);
@@ -32,9 +33,13 @@ const Employees = () => {
     departmentId: ''
   });
 
+  const { hasPermission } = useContext(AuthContext);
+
   useEffect(() => {
-    fetchEmployees();
-    fetchDepartments();
+    if (hasPermission('employees', 'view')) {
+      fetchEmployees();
+      fetchDepartments();
+    }
   }, [currentPage, searchParams]);
 
   const fetchEmployees = async () => {
@@ -139,13 +144,26 @@ const Employees = () => {
     }
   };
 
+  if (!hasPermission('employees', 'view')) {
+    return (
+      <div className="container-fluid mt-4">
+        <div className="alert alert-danger shadow-sm border-0">
+          <i className="bi bi-shield-slash-fill me-2"></i>
+          <strong>Access Denied:</strong> You do not have permissions to view this module.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4 mt-2">
         <h2 className="text-dark fw-bold mb-0">Employee Directory</h2>
-        <Button variant="primary" className="shadow-sm rounded-pill px-4 py-2 fw-semibold" onClick={handleOpenAddModal}>
-          <i className="bi bi-person-plus-fill me-2"></i>Add Employee
-        </Button>
+        {hasPermission('employees', 'create') && (
+          <Button variant="primary" className="shadow-sm rounded-pill px-4 py-2 fw-semibold" onClick={handleOpenAddModal}>
+            <i className="bi bi-person-plus-fill me-2"></i>Add Employee
+          </Button>
+        )}
       </div>
 
       {/* Advanced Multi-Select Filters */}
@@ -259,12 +277,16 @@ const Employees = () => {
                     </Badge>
                   </td>
                   <td className="text-end px-4">
-                    <Button variant="light" size="sm" className="me-2 text-primary shadow-sm" onClick={() => handleOpenEditModal(emp)}>
-                      <i className="bi bi-pencil-square"></i>
-                    </Button>
-                    <Button variant="light" size="sm" className="text-danger shadow-sm" onClick={() => handleDeleteEmployee(emp.id)}>
-                      <i className="bi bi-trash-fill"></i>
-                    </Button>
+                    {hasPermission('employees', 'edit') && (
+                      <Button variant="light" size="sm" className="me-2 text-primary shadow-sm" onClick={() => handleOpenEditModal(emp)}>
+                        <i className="bi bi-pencil-square"></i>
+                      </Button>
+                    )}
+                    {hasPermission('employees', 'delete') && (
+                      <Button variant="light" size="sm" className="text-danger shadow-sm" onClick={() => handleDeleteEmployee(emp.id)}>
+                        <i className="bi bi-trash-fill"></i>
+                      </Button>
+                    )}
                   </td>
                 </tr>
               )) : (

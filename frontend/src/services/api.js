@@ -229,6 +229,27 @@ const initialDB = {
   ],
   bookReservations: [
     { id: 1, bookTitle: 'Introduction to Algorithms', borrowerName: 'Rahul Verma', borrowerType: 'STUDENT', reservationDate: '2026-05-20', status: 'PENDING' }
+  ],
+  users: [
+    { id: 1, username: 'EMP001', email: 'emp001@college.edu', fullName: 'John Doe', enabled: true, roles: ['ROLE_ADMIN', 'ROLE_ADMINISTRATOR'], employeeId: 1, employeeCode: 'EMP001' },
+    { id: 2, username: 'EMP002', email: 'emp002@college.edu', fullName: 'Sarah Connor', enabled: true, roles: ['ROLE_STAFF'], employeeId: 2, employeeCode: 'EMP002' },
+    { id: 3, username: 'EMP003', email: 'emp003@college.edu', fullName: 'Rajesh Kumar', enabled: true, roles: ['ROLE_TEACHER'], employeeId: 3, employeeCode: 'EMP003' }
+  ],
+  userPermissions: [
+    { id: 1, userId: 1, moduleName: 'students', canView: true, canCreate: true, canEdit: true, canDelete: true },
+    { id: 2, userId: 1, moduleName: 'employees', canView: true, canCreate: true, canEdit: true, canDelete: true },
+    { id: 3, userId: 1, moduleName: 'departments', canView: true, canCreate: true, canEdit: true, canDelete: true },
+    { id: 4, userId: 1, moduleName: 'payroll', canView: true, canCreate: true, canEdit: true, canDelete: true },
+    { id: 5, userId: 1, moduleName: 'academics', canView: true, canCreate: true, canEdit: true, canDelete: true },
+    { id: 6, userId: 1, moduleName: 'library', canView: true, canCreate: true, canEdit: true, canDelete: true },
+    { id: 7, userId: 1, moduleName: 'hostel', canView: true, canCreate: true, canEdit: true, canDelete: true },
+    { id: 8, userId: 1, moduleName: 'transport', canView: true, canCreate: true, canEdit: true, canDelete: true },
+    { id: 9, userId: 1, moduleName: 'finance', canView: true, canCreate: true, canEdit: true, canDelete: true },
+    { id: 10, userId: 1, moduleName: 'notices', canView: true, canCreate: true, canEdit: true, canDelete: true },
+    
+    { id: 11, userId: 2, moduleName: 'students', canView: true, canCreate: false, canEdit: false, canDelete: false },
+    { id: 12, userId: 2, moduleName: 'employees', canView: false, canCreate: false, canEdit: false, canDelete: false },
+    { id: 13, userId: 2, moduleName: 'library', canView: true, canCreate: true, canEdit: true, canDelete: true }
   ]
 };
 
@@ -289,13 +310,64 @@ api.defaults.adapter = async (config) => {
           id: 1,
           username: username,
           email: `${username.toLowerCase().replace(/\s+/g, '')}@institution.edu`,
-          roles: ['ROLE_ADMINISTRATOR']
+          roles: ['ROLE_ADMIN', 'ROLE_ADMINISTRATOR']
         },
         status: 200,
         statusText: 'OK',
         headers: {},
         config
       };
+    }
+
+    // USERS & PERMISSIONS
+    if (url.includes('/users/me/permissions')) {
+      const perms = db.userPermissions ? db.userPermissions.filter(p => p.userId === 1) : [];
+      return { data: perms, status: 200, statusText: 'OK', headers: {}, config };
+    }
+
+    if (url.match(/\/users\/\d+\/permissions$/)) {
+      const userId = parseInt(url.split('/').slice(-2)[0]);
+      if (method === 'get') {
+        const perms = db.userPermissions ? db.userPermissions.filter(p => p.userId === userId) : [];
+        return { data: perms, status: 200, statusText: 'OK', headers: {}, config };
+      }
+      if (method === 'put') {
+        db.userPermissions = (db.userPermissions || []).filter(p => p.userId !== userId);
+        const newPerms = (data || []).map((p, idx) => ({
+          ...p,
+          id: db.userPermissions.length + idx + 1,
+          userId
+        }));
+        db.userPermissions.push(...newPerms);
+        saveDB(db);
+        return { data: newPerms, status: 200, statusText: 'OK', headers: {}, config };
+      }
+    }
+
+    if (url.match(/\/users\/\d+$/)) {
+      const id = parseInt(url.split('/').pop());
+      if (method === 'get') {
+        const user = db.users ? db.users.find(u => u.id === id) : null;
+        return { data: user, status: 200, statusText: 'OK', headers: {}, config };
+      }
+      if (method === 'put') {
+        const idx = db.users.findIndex(u => u.id === id);
+        if (idx !== -1) {
+          db.users[idx] = { ...db.users[idx], ...data };
+          saveDB(db);
+          return { data: db.users[idx], status: 200, statusText: 'OK', headers: {}, config };
+        }
+      }
+      if (method === 'delete') {
+        db.users = db.users.filter(u => u.id !== id);
+        db.userPermissions = db.userPermissions.filter(p => p.userId !== id);
+        saveDB(db);
+        return { data: { success: true }, status: 200, statusText: 'OK', headers: {}, config };
+      }
+    }
+
+    if (url.endsWith('/users') && method === 'get') {
+      return { data: db.users || [], status: 200, statusText: 'OK', headers: {}, config };
     }
 
     // STUDENTS
@@ -649,7 +721,41 @@ api.defaults.adapter = async (config) => {
         id: db.employees.length ? Math.max(...db.employees.map(e => e.id)) + 1 : 1,
         employeeId: data.employeeId || `EMP${Math.floor(100 + Math.random() * 900)}`
       };
+      
+      const officialEmail = newEmp.employeeId.toLowerCase() + "@college.edu";
+      newEmp.email = officialEmail;
+      
       db.employees.push(newEmp);
+
+      // Auto-create User account in mock DB
+      const newUser = {
+        id: db.users && db.users.length ? Math.max(...db.users.map(u => u.id)) + 1 : 1,
+        username: newEmp.employeeId,
+        email: officialEmail,
+        fullName: `${newEmp.firstName} ${newEmp.lastName}`,
+        enabled: true,
+        roles: [newEmp.employeeType === 'ADMIN' ? 'ROLE_ADMIN' : 'ROLE_STAFF'],
+        employeeId: newEmp.id,
+        employeeCode: newEmp.employeeId
+      };
+      if (!db.users) db.users = [];
+      db.users.push(newUser);
+
+      // Initialize mock User Permissions for all modules (defaulting to false)
+      const modules = ['students', 'employees', 'departments', 'payroll', 'academics', 'library', 'hostel', 'transport', 'finance', 'notices'];
+      if (!db.userPermissions) db.userPermissions = [];
+      modules.forEach((mod, idx) => {
+        db.userPermissions.push({
+          id: db.userPermissions.length + 1,
+          userId: newUser.id,
+          moduleName: mod,
+          canView: false,
+          canCreate: false,
+          canEdit: false,
+          canDelete: false
+        });
+      });
+
       saveDB(db);
       return { data: newEmp, status: 201, statusText: 'Created', headers: {}, config };
     }

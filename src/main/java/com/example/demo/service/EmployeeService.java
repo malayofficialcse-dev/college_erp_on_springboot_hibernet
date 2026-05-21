@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class EmployeeService {
 
     @Autowired private EmployeeRepository employeeRepository;
+    @Autowired private com.example.demo.repository.UserRepository userRepository;
+    @Autowired private UserService userService;
+    @Autowired private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public Page<Employee> getAllEmployees(Pageable pageable) {
         return employeeRepository.findAll(pageable);
@@ -41,10 +44,58 @@ public class EmployeeService {
 
     @Transactional
     public Employee createEmployee(Employee employee) {
-        if (employeeRepository.findByEmail(employee.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already registered: " + employee.getEmail());
+        String officialEmail = employee.getEmployeeCode().toLowerCase() + "@college.edu";
+        employee.setEmail(officialEmail);
+
+        if (employeeRepository.findByEmail(officialEmail).isPresent()) {
+            throw new IllegalArgumentException("Email already registered: " + officialEmail);
         }
-        return employeeRepository.save(employee);
+        if (userRepository.existsByUsername(employee.getEmployeeCode())) {
+            throw new IllegalArgumentException("Username already exists: " + employee.getEmployeeCode());
+        }
+
+        Employee savedEmployee = employeeRepository.save(employee);
+
+        // Auto-create User account for this employee
+        com.example.demo.model.User user = new com.example.demo.model.User();
+        user.setUsername(savedEmployee.getEmployeeCode());
+        user.setEmail(officialEmail);
+        user.setPassword(passwordEncoder.encode("Welcome@123")); // Default password
+        user.setEnabled(true);
+        user.setEmployeeId(savedEmployee.getId());
+        user.setEmployeeCode(savedEmployee.getEmployeeCode());
+        user.setFullName(savedEmployee.getFirstName() + " " + savedEmployee.getLastName());
+
+        java.util.Set<com.example.demo.model.ERole> roles = new java.util.HashSet<>();
+        String type = savedEmployee.getEmployeeType() != null ? savedEmployee.getEmployeeType().toUpperCase() : "";
+        String designation = savedEmployee.getDesignation() != null ? savedEmployee.getDesignation().toUpperCase() : "";
+        
+        if (designation.contains("HOD")) {
+            roles.add(com.example.demo.model.ERole.ROLE_HOD);
+            roles.add(com.example.demo.model.ERole.ROLE_TEACHER);
+        } else if (designation.contains("LIBRARIAN")) {
+            roles.add(com.example.demo.model.ERole.ROLE_LIBRARIAN);
+        } else if (designation.contains("ACCOUNTANT")) {
+            roles.add(com.example.demo.model.ERole.ROLE_ACCOUNTANT);
+        } else if (designation.contains("WARDEN")) {
+            roles.add(com.example.demo.model.ERole.ROLE_HOSTEL_WARDEN);
+        } else if (designation.contains("PRINCIPAL")) {
+            roles.add(com.example.demo.model.ERole.ROLE_PRINCIPAL);
+        } else if ("TEACHING".equals(type) || designation.contains("TEACHER") || designation.contains("PROFESSOR")) {
+            roles.add(com.example.demo.model.ERole.ROLE_TEACHER);
+        } else if ("ADMIN".equals(type)) {
+            roles.add(com.example.demo.model.ERole.ROLE_ADMIN);
+        } else {
+            roles.add(com.example.demo.model.ERole.ROLE_STAFF);
+        }
+        user.setRoles(roles);
+
+        com.example.demo.model.User savedUser = userRepository.save(user);
+
+        // Initialize User permissions for all system modules (defaulting to false)
+        userService.initUserPermissions(savedUser);
+
+        return savedEmployee;
     }
 
     @Transactional

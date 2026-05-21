@@ -311,3 +311,67 @@ body {
 [data-theme="dark"] .table td {
   border-color: var(--border-color) !important;
 }
+
+/* Dark Theme Overrides for Tables, Buttons, and Forms */
+[data-theme="dark"] .table {
+  --bs-table-bg: transparent !important;
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.02) !important;
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.04) !important;
+  --bs-table-color: var(--text-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .table-hover > tbody > tr:hover > * {
+  --bs-table-accent-bg: rgba(255, 255, 255, 0.04) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Dropdown white/light buttons */
+[data-theme="dark"] .btn-white,
+[data-theme="dark"] .btn-light,
+[data-theme="dark"] .dropdown-toggle.btn-white,
+[data-theme="dark"] .dropdown-toggle.btn-light,
+[data-theme="dark"] .btn[class*="btn-white"],
+[data-theme="dark"] .btn[class*="btn-light"] {
+  background-color: var(--surface-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Filters & Inputs in Card Bodies */
+[data-theme="dark"] .bg-light .form-control {
+  background-color: var(--surface-color) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-toggle.btn-white:hover,
+[data-theme="dark"] .dropdown-toggle.btn-light:hover {
+  background-color: var(--border-light) !important;
+}
+
+/* Pagination Dark Mode */
+[data-theme="dark"] .pagination .page-link {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .pagination .page-item.disabled .page-link {
+  background-color: var(--bg-color) !important;
+  color: var(--text-tertiary) !important;
+  border-color: var(--border-color) !important;
+}
+

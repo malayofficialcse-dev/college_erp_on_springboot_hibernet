@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Table, Button, Modal, Form, Row, Col, InputGroup, Pagination, Badge, Dropdown, Card } from 'react-bootstrap';
 import api from '../../services/api';
+import { AuthContext } from '../../context/AuthContext';
 
 const Students = () => {
   const [students, setStudents] = useState([]);
@@ -33,9 +34,13 @@ const Students = () => {
     department: null
   });
 
+  const { hasPermission } = useContext(AuthContext);
+
   useEffect(() => {
-    fetchStudents();
-    fetchDepartments();
+    if (hasPermission('students', 'view')) {
+      fetchStudents();
+      fetchDepartments();
+    }
   }, [currentPage, searchParams]);
 
   const fetchStudents = async () => {
@@ -155,13 +160,26 @@ const Students = () => {
     }
   };
 
+  if (!hasPermission('students', 'view')) {
+    return (
+      <div className="container-fluid mt-4">
+        <div className="alert alert-danger shadow-sm border-0">
+          <i className="bi bi-shield-slash-fill me-2"></i>
+          <strong>Access Denied:</strong> You do not have permissions to view this module.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-dark fw-bold mb-0">Student Management</h2>
-        <Button variant="primary" onClick={handleOpenAddModal}>
-          <i className="bi bi-plus-lg me-2"></i>Add Student
-        </Button>
+        {hasPermission('students', 'create') && (
+          <Button variant="primary" onClick={handleOpenAddModal}>
+            <i className="bi bi-plus-lg me-2"></i>Add Student
+          </Button>
+        )}
       </div>
 
       {/* Advanced Multi-Select Filters */}
@@ -271,12 +289,16 @@ const Students = () => {
                       </Badge>
                     </td>
                     <td className="text-end px-4">
-                      <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleOpenEditModal(student)}>
-                        <i className="bi bi-pencil"></i>
-                      </Button>
-                      <Button variant="outline-danger" size="sm" onClick={() => handleDeleteStudent(student.id)}>
-                        <i className="bi bi-trash"></i>
-                      </Button>
+                      {hasPermission('students', 'edit') && (
+                        <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleOpenEditModal(student)}>
+                          <i className="bi bi-pencil"></i>
+                        </Button>
+                      )}
+                      {hasPermission('students', 'delete') && (
+                        <Button variant="outline-danger" size="sm" onClick={() => handleDeleteStudent(student.id)}>
+                          <i className="bi bi-trash"></i>
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))

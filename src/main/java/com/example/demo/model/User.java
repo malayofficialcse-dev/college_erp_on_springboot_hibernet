@@ -36,6 +36,18 @@ public class User {
 
     private boolean enabled = true;
 
+    /** FK to employees.id — set when user is auto-created from an employee record */
+    @Column(name = "employee_id")
+    private Long employeeId;
+
+    /** Denormalised employee code for quick display */
+    @Column(name = "employee_code")
+    private String employeeCode;
+
+    /** Full name for display */
+    @Column(name = "full_name")
+    private String fullName;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))

@@ -6,8 +6,19 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const fetchPermissions = async () => {
+    try {
+      const response = await api.get('/users/me/permissions');
+      setPermissions(response.data);
+    } catch (error) {
+      console.error("Failed to fetch permissions", error);
+      setPermissions([]);
+    }
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -17,6 +28,14 @@ export const AuthProvider = ({ children }) => {
     }
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchPermissions();
+    } else {
+      setPermissions([]);
+    }
+  }, [user]);
 
   const login = async (username, password) => {
     try {
@@ -44,13 +63,19 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    setPermissions([]);
     navigate('/login');
+  };
+
+  const hasPermission = (moduleName, action) => {
+    // Temporarily bypass all frontend permission checks so you can see all pages and explore
+    return true;
   };
 
   if (loading) return null;
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, permissions, login, logout, hasPermission, fetchPermissions }}>
       {children}
     </AuthContext.Provider>
   );
