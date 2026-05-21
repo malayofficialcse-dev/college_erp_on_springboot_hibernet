@@ -88,6 +88,9 @@ public class Admission extends AuditableSoftDeleteEntity {
     @Column(name = "remarks", columnDefinition = "TEXT")
     private String remarks;
 
+    @Column(name = "bill_number", unique = true)
+    private String billNumber;
+
     @OneToMany(mappedBy = "admission", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AdmissionEmi> emiSchedule = new ArrayList<>();
 }

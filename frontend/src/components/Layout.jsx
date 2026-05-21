@@ -25,6 +25,7 @@ const Layout = () => {
     if (path.startsWith('/departments')) return 'departments';
     if (path.startsWith('/payroll')) return 'payroll';
     
+    if (path.startsWith('/counseling')) return 'academics';
     if (path.startsWith('/academic-years')) return 'academics';
     if (path.startsWith('/semesters')) return 'academics';
     if (path.startsWith('/teachers')) return 'academics';
@@ -67,6 +68,7 @@ const Layout = () => {
       icon: 'bi-mortarboard-fill',
       isGroup: true,
       items: [
+        { path: '/counseling', name: 'Counseling', icon: 'bi-headset' },
         { path: '/admissions', name: 'Admissions', icon: 'bi-mortarboard-fill' },
         { path: '/academic-years', name: 'Academic Years', icon: 'bi-calendar-range' },
         { path: '/semesters', name: 'Semesters', icon: 'bi-list-ol' },

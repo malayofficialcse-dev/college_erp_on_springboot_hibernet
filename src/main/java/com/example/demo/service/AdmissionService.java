@@ -107,6 +107,16 @@ public class AdmissionService {
         BigDecimal advance = admission.getAdvanceAmount() != null ? admission.getAdvanceAmount() : BigDecimal.ZERO;
         admission.setAmountPaid(advance);
         admission.setBalanceDue(netPayable.subtract(advance));
+        
+        // Generate bill number (BILL/SESSION/XXXXX)
+        if (admission.getBillNumber() == null || admission.getBillNumber().isBlank()) {
+            String session = admission.getAcademicYear() != null && !admission.getAcademicYear().isBlank() 
+                                ? admission.getAcademicYear() 
+                                : String.valueOf(LocalDate.now().getYear());
+            long count = admissionRepository.countByAcademicYear(session);
+            String seq = String.format("%05d", (count + 1));
+            admission.setBillNumber("BILL/" + session + "/" + seq);
+        }
 
         Admission saved = admissionRepository.save(admission);
 

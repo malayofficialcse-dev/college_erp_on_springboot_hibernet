@@ -38,6 +38,7 @@ import UserManagement from './pages/HR/UserManagement';
 import PaymentAnalysis from './pages/Finance/PaymentAnalysis';
 import Admissions from './pages/Academics/Admissions';
 import AdmissionEmiSchedule from './pages/Academics/AdmissionEmiSchedule';
+import Counseling from './pages/Academics/Counseling';
 
 // Employee Centre
 import MyProfile from './pages/EmployeeCentre/MyProfile';
@@ -63,6 +64,7 @@ function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="admissions" element={<Admissions />} />
               <Route path="admissions/:id/emi" element={<AdmissionEmiSchedule />} />
+              <Route path="counseling" element={<Counseling />} />
               <Route path="students" element={<Students />} />
               <Route path="employees" element={<Employees />} />
               <Route path="courses" element={<Courses />} />

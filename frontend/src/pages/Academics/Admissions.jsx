@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Row, Col, Badge, Card, Alert, Spinner } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 
 const STATUS_COLOR = { ACTIVE: 'success', COMPLETED: 'primary', PENDING: 'warning', CANCELLED: 'danger' };
 
 const Admissions = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const counselingData = location.state?.counselingData;
+  const isFromCounseling = !!counselingData;
+
   const [admissions, setAdmissions] = useState([]);
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -41,6 +45,14 @@ const Admissions = () => {
       setStudents(s.data.content || []);
       setCourses(c.data.content || c.data || []);
       setDepartments(d.data.content || d.data || []);
+
+      if (isFromCounseling) {
+        setForm(prev => ({
+          ...prev,
+          courseId: counselingData.desiredCourse?.id || '',
+        }));
+        setShowModal(true);
+      }
     } catch { setAlert({ type: 'danger', msg: 'Failed to load data.' }); }
     finally { setLoading(false); }
   };
@@ -52,8 +64,30 @@ const Admissions = () => {
     e.preventDefault();
     try {
       setSubmitting(true);
+      
+      let targetStudentId = f.studentId;
+      
+      // If coming from counseling and student not selected, auto-create student
+      if (isFromCounseling && !targetStudentId) {
+        const studentPayload = {
+           enrollmentNumber: 'ENR' + Date.now().toString().slice(-6),
+           firstName: counselingData.firstName,
+           lastName: counselingData.lastName,
+           email: counselingData.email,
+           phone: counselingData.phone,
+           gender: counselingData.gender || 'Male',
+           dateOfBirth: counselingData.dateOfBirth,
+           status: 'ACTIVE'
+        };
+        const studentRes = await api.post('/students', studentPayload);
+        targetStudentId = studentRes.data.id;
+        
+        // Mark counseling as admitted
+        await api.patch(`/counseling/${counselingData.id}/admit`);
+      }
+
       await api.post('/admissions', {
-        student: { id: parseInt(f.studentId) },
+        student: { id: parseInt(targetStudentId) },
         course: { id: parseInt(f.courseId) },
         department: f.departmentId ? { id: parseInt(f.departmentId) } : null,
         academicYear: f.academicYear, admissionDate: f.admissionDate,
@@ -69,6 +103,8 @@ const Admissions = () => {
       });
       setAlert({ type: 'success', msg: 'Admission created successfully!' });
       setShowModal(false);
+      // Clear location state
+      navigate('/admissions', { replace: true });
       loadData();
     } catch { setAlert({ type: 'danger', msg: 'Failed to create admission.' }); }
     finally { setSubmitting(false); }
@@ -144,6 +180,7 @@ const Admissions = () => {
               <thead className="bg-light">
                 <tr>
                   <th className="px-4 py-3">Admission No.</th>
+                  <th>Bill No.</th>
                   <th>Student</th>
                   <th>Course / Dept</th>
                   <th>Acad. Year</th>
@@ -161,6 +198,9 @@ const Admissions = () => {
                     <td className="px-4">
                       <div className="fw-bold text-primary">{a.admissionNumber}</div>
                       <small className="text-muted">{a.admissionDate}</small>
+                    </td>
+                    <td>
+                      <div className="fw-medium text-dark">{a.billNumber || '—'}</div>
                     </td>
                     <td>
                       <div className="fw-semibold">{a.student?.firstName} {a.student?.lastName}</div>
@@ -223,13 +263,20 @@ const Admissions = () => {
               </Col>
               <Col md={4}>
                 <Form.Label className="small fw-bold text-muted">Student *</Form.Label>
-                <Form.Select className="rounded-3" required value={f.studentId}
-                  onChange={e => setForm({ ...f, studentId: e.target.value })}>
-                  <option value="">Select Student</option>
-                  {students.map(s => (
-                    <option key={s.id} value={s.id}>[{s.enrollmentNumber}] {s.firstName} {s.lastName}</option>
-                  ))}
-                </Form.Select>
+                {isFromCounseling ? (
+                  <div className="p-2 border rounded-3 bg-light">
+                    <div className="fw-semibold text-primary">{counselingData.firstName} {counselingData.lastName}</div>
+                    <small className="text-muted d-block">Will be created as a new student</small>
+                  </div>
+                ) : (
+                  <Form.Select className="rounded-3" required value={f.studentId}
+                    onChange={e => setForm({ ...f, studentId: e.target.value })}>
+                    <option value="">Select Student</option>
+                    {students.map(s => (
+                      <option key={s.id} value={s.id}>[{s.enrollmentNumber}] {s.firstName} {s.lastName}</option>
+                    ))}
+                  </Form.Select>
+                )}
               </Col>
               <Col md={4}>
                 <Form.Label className="small fw-bold text-muted">Course *</Form.Label>

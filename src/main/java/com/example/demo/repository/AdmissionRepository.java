@@ -56,4 +56,6 @@ public interface AdmissionRepository extends JpaRepository<Admission, Long> {
     long countByStatus(String status);
 
     long countByPaymentPlan(String paymentPlan);
+
+    long countByAcademicYear(String academicYear);
 }
